@@ -2,16 +2,18 @@ package io.github.mtn16;
 
 
 import com.google.gson.*;
-import io.leangen.geantyref.TypeToken;
+import io.github.mtn16.annotation.Unique;
+import io.github.mtn16.test.TestModel;
 
 import java.io.*;
-import java.lang.reflect.Type;
+import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 
 public class JsonReader {
@@ -80,7 +82,7 @@ public class JsonReader {
         save();
     }
 
-    public <T> void update(Class<T> clazz, T updateValue, Predicate<T> filter) {
+    public <T> void update(Class<T> clazz, T updateValue, Predicate<T> filter) throws Exception {
         List<T> list = getAll(clazz);
 
 
@@ -89,6 +91,34 @@ public class JsonReader {
                 list.set(i, updateValue);
             }
         }
+
+        getAll(clazz);
+
+        Map<String, Boolean> uniques = checkUnique(clazz);
+        System.out.println(uniques);
+        if(!uniques.isEmpty()) {
+
+            List<T> existing = getAll(clazz);
+
+            uniques.forEach((field, value)-> {
+                if(!value) return;
+                System.out.println("A " + field);
+                existing.forEach(existingItem -> {
+                    try {
+                        Field field1 = existingItem.getClass().getField(field);
+                        System.out.println("B " + field1);
+                        System.out.println("C " + field1.get(existingItem));
+                        System.out.println("D " + field1.get(updateValue));
+                        if(field.equals(field1.get(updateValue))) throw new IllegalStateException("Invalid data: value in " + field + " is not unique.");
+                    } catch (IllegalAccessException | NoSuchFieldException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+            });
+        }
+
+
+
 
         String className = clazz.getCanonicalName().toLowerCase() + "s";
         JsonObject classesSection = getSection("classes");
@@ -109,6 +139,29 @@ public class JsonReader {
         classesSection.add(className, array);
 
         save();
+    }
+
+    private <T> Map<String, Boolean> checkUnique(T object) {
+        Map<String, Boolean> map = new HashMap<>();
+
+        Field[] fields = object.getClass().getDeclaredFields();
+        System.out.println(object.getClass());
+        try {
+            System.out.println();
+            System.out.println(new TestModel(1, "", new ArrayList<>()).getClass());
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+
+        /*for(int i = 0; i < fields.length; i++) {
+            Field field = fields[i];
+            System.out.println(field.getName());
+            if(field.isAnnotationPresent(Unique.class)) {
+                map.put(field.getName(), true);
+            }
+        }*/
+
+        return map;
     }
 
     private <T> List<T> getAll(Class<T> clazz) {

@@ -4,14 +4,14 @@ import java.io.File;
 
 public class MyDB {
     private final File file;
-    private final JsonReader schema;
+    private final Serializer schema;
 
     public MyDB(File file) {
         this.file = file;
-        this.schema = new JsonReader(file);
+        this.schema = new Serializer(file.toPath());
     }
 
-    public JsonReader getSchema() {
+    public Serializer getSchema() {
         return schema;
     }
 }
