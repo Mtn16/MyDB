@@ -83,7 +83,10 @@ public class Serializer {
 
             if (predicate.test(existing)) {
                 List<Object> copy = new ArrayList<>(objects);
+                Object oldObject = copy.get(i);
                 copy.remove(i);
+
+                newValue = overwritePrimary(newValue, clazz.cast(oldObject));
 
                 validateUnique(newValue, copy);
                 Item<T> primaryItem = usePrimary(newValue, copy, raw.index());
@@ -96,6 +99,25 @@ public class Serializer {
 
         allData.put(clazz.getName(), new RawResult(index, objects));
         saveAll(allData);
+    }
+
+    private <T> T overwritePrimary(T newValue, T existing) {
+        int primaryFields = 0;
+        try {
+            for (Field field : newValue.getClass().getDeclaredFields()) {
+                if(primaryFields > 1) throw new IllegalStateException("Only one primary field can be used");
+                if(field.isAnnotationPresent(Primary.class)) {
+                    primaryFields++;
+                    field.setAccessible(true);
+                    if(field.getType() != int.class) throw new IllegalStateException("Primary field must be int");
+                    field.set(newValue, field.getInt(existing));
+                }
+            }
+        } catch (IllegalAccessException e) {
+            throw new IllegalStateException(e.getMessage());
+        }
+
+        return newValue;
     }
 
     public <T> void delete(Class<T> clazz, Predicate<T> predicate) {
@@ -159,7 +181,7 @@ public class Serializer {
                     if(fields > 1) throw new IllegalStateException("Only one primary field can be used");
                     field.setAccessible(true);
 
-                    if(field.getType() != int.class) throw new IllegalStateException("Primary must be int");
+                    if(field.getType() != int.class) throw new IllegalStateException("Primary field must be int");
                     if(field.getInt(object) > -1) {
                         try {
                             Object newValue = field.get(object);

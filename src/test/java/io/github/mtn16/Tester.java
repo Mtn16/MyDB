@@ -10,16 +10,16 @@ public class Tester {
 
         //db.getSchema().insert(new TestModel(1, "Přemysl"));
 
-        db.getSchema().insert(new TestModel(-1, "Přemek"));
+        /*db.getSchema().insert(new TestModel(-1, "Přemek"));
 
         db.getSchema().find(TestModel.class).forEach(record -> {
             System.out.println(record);
             System.out.println(record.getId());
             System.out.println(record.getName());
             System.out.println("------------");
-        });
+        });*/
 
-        //db.getSchema().update(TestModel.class, new TestModel(2, "Premos"), row -> row.getId() == 1);
+        db.getSchema().update(TestModel.class, new TestModel(-1, "Vaculdos"), row -> row.getId() == 2);
         //db.getSchema().delete(TestModel.class, row -> row.getId() == 2);
 
         db.getSchema().find(TestModel.class).forEach(record -> {
