@@ -1,7 +1,5 @@
 package io.github.mtn16;
 
-import io.github.mtn16.test.TestModel;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,10 +9,8 @@ public class Tester {
         MyDB db = new MyDB(new File("./devdb.db"));
 
         //db.getSchema().insert(new TestModel(1, "Přemysl"));
-        List<String> strings = new ArrayList<>();
-        strings.add("abc");
-        strings.add("xyz");
-        db.getSchema().insert(new TestModel(2, "Přemysl", strings));
+
+        db.getSchema().insert(new TestModel(-1, "Přemek"));
 
         db.getSchema().find(TestModel.class).forEach(record -> {
             System.out.println(record);
