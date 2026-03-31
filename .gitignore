@@ -44,3 +44,4 @@ bin/
 
 ### Dev DB ###
 devdb.db
+/export.csv

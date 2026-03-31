@@ -52,6 +52,45 @@ public class Serializer {
         saveAll(allData);
     }
 
+    public Map<String, String> rawContent() {
+        Map<String, String> m = new HashMap<>();
+        try (BufferedReader reader = Files.newBufferedReader(file)) {
+
+            String line;
+            String currentClass = null;
+            Map<String, String> fieldMap = new HashMap<>();
+
+            while ((line = reader.readLine()) != null) {
+
+                if (line.startsWith("#CLASS ")) {
+                    currentClass = line.substring(7).split("\\s+")[0];
+                    int currentIndex = 1;
+                    try {
+                        currentIndex = Integer.parseInt(line.substring(7).split("\\s+")[1]);
+                    } catch (NumberFormatException ignored) {}
+                    m.putIfAbsent(currentClass, "");
+                }
+
+                else if (line.equals("--")) {
+                    if (currentClass != null && !fieldMap.isEmpty()) {
+                        m.put(currentClass, m.get(currentClass) + fieldMap.toString());
+                        fieldMap.clear();
+                    }
+                }
+
+                else if (line.contains("=")) {
+                    String[] parts = line.split("=", 2);
+                    fieldMap.put(parts[0], parts[1]);
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return m;
+    }
+
     public <T> List<T> find(Class<T> clazz) {
         return find(clazz, t -> true);
     }
