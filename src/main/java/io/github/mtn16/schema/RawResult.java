@@ -1,4 +1,4 @@
-package io.github.mtn16;
+package io.github.mtn16.schema;
 
 import java.util.List;
 

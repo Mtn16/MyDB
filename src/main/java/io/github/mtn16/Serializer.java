@@ -2,6 +2,8 @@ package io.github.mtn16;
 
 import io.github.mtn16.annotation.Primary;
 import io.github.mtn16.annotation.Unique;
+import io.github.mtn16.schema.Item;
+import io.github.mtn16.schema.RawResult;
 
 import java.io.*;
 import java.lang.reflect.Field;
