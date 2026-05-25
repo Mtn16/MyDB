@@ -11,11 +11,18 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 
+/**
+ * Main database class
+ */
 public class MyDB {
     private final File file;
     private final Serializer schema;
     private final DatabaseInterface databaseInterface;
 
+    /**
+     * The main database class
+     * @param file The file where the database should be saved and loaded from
+     */
     public MyDB(File file) {
         this.file = file;
         this.databaseInterface = new DatabaseInterface();
@@ -26,6 +33,12 @@ public class MyDB {
         return schema;
     }
 
+    /**
+     * Exports the whole database to a specified file
+     * @param filename The file to save the exported database
+     * @param format The data format to use during export
+     * @throws IOException Exception when the file or directory is read-only
+     */
     public void export(Path filename, ExportFormat format) throws IOException {
         if(format == ExportFormat.CSV) {
             String eol = System.lineSeparator();

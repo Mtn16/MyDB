@@ -13,11 +13,19 @@ import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.function.Predicate;
 
+/**
+ * DB serializer and parser
+ */
 public class Serializer {
 
     private final Path file;
     private final DatabaseInterface databaseInterface;
 
+    /**
+     * Creates the database serializer
+     * @param file File where the database should be saved / loaded from
+     * @param databaseInterface Helper to store insertion details
+     */
     public Serializer(Path file, DatabaseInterface databaseInterface) {
         this.file = file;
         this.databaseInterface = databaseInterface;
@@ -31,7 +39,12 @@ public class Serializer {
     }
 
 
-    public void insert(Object object) {
+    /**
+     * Inserts the specified object to the database
+     * @param object The object to be inserted
+     * @throws IllegalAccessException Exception when the primary key is not unique value
+     */
+    public void insert(Object object) throws IllegalAccessException {
         Map<String, RawResult> allData = loadAllRaw();
         RawResult raw = allData.getOrDefault(object.getClass().getName(), new RawResult(-1, new ArrayList<>()));
         int index = raw.index();
@@ -52,7 +65,12 @@ public class Serializer {
         saveAll(allData);
     }
 
-    public Map<String, String> rawContent() {
+    /**
+     * Returns the database raw content
+     * @return Raw content of the database
+     * @throws IOException When the file is not accessible
+     */
+    public Map<String, String> rawContent() throws IOException {
         Map<String, String> m = new HashMap<>();
         try (BufferedReader reader = Files.newBufferedReader(file)) {
 
@@ -84,17 +102,28 @@ public class Serializer {
                 }
             }
 
-        } catch (Exception e) {
-            e.printStackTrace();
         }
 
         return m;
     }
 
+    /**
+     * Returns all saved instances of the specified class
+     * @param clazz The specified class to find
+     * @return List of all saved instances
+     * @param <T> The specified class type
+     */
     public <T> List<T> find(Class<T> clazz) {
         return find(clazz, t -> true);
     }
 
+    /**
+     * Finds all saved instances of the specified class if the condition is fulfilled
+     * @param clazz The specified class to find
+     * @param predicate The condition that has to be fulfilled for the tested instance
+     * @return List of saved instances that matches the condition
+     * @param <T> The specified class type
+     */
     public <T> List<T> find(Class<T> clazz, Predicate<T> predicate) {
         Map<String, RawResult> allData = loadAllRaw();
         RawResult raw = allData.getOrDefault(clazz.getName(), new RawResult(-1, new ArrayList<>()));
@@ -112,7 +141,15 @@ public class Serializer {
         return result;
     }
 
-    public <T> void update(Class<T> clazz, T newValue, Predicate<T> predicate) {
+    /**
+     * Updates all saved instances of the specified class with the new value if the condition is fulfilled
+     * @param clazz The specified class to update
+     * @param newValue The new value that the old one should be replaced with
+     * @param predicate The condition that has to be fulfilled for the tested instance
+     * @param <T> The specified class type
+     * @throws IllegalAccessException Exception when the primary key is not unique value
+     */
+    public <T> void update(Class<T> clazz, T newValue, Predicate<T> predicate) throws IllegalAccessException {
         Map<String, RawResult> allData = loadAllRaw();
         RawResult raw = allData.getOrDefault(clazz.getName(), new RawResult(-1, new ArrayList<>()));
         int index = raw.index();
@@ -161,6 +198,12 @@ public class Serializer {
         return newValue;
     }
 
+    /**
+     * Deletes all saved instances of the specified class with the new value if the condition is fulfilled
+     * @param clazz The specified class to update
+     * @param predicate The condition that has to be fulfilled for the tested instance
+     * @param <T> The specified class type
+     */
     public <T> void delete(Class<T> clazz, Predicate<T> predicate) {
         Map<String, RawResult> allData = loadAllRaw();
         RawResult raw = allData.getOrDefault(clazz.getName(), new RawResult(-1, new ArrayList<>()));
@@ -209,12 +252,12 @@ public class Serializer {
         }
     }
 
-    private <T> Item<T> usePrimary(T object, List<Object> existingObjects, int lastId) throws IllegalStateException {
+    private <T> Item<T> usePrimary(T object, List<Object> existingObjects, int lastId) throws IllegalStateException, IllegalAccessException {
         Class<?> clazz = object.getClass();
         int objectId = -1;
         int fields = 0;
 
-        try {
+
             for (Field field : clazz.getDeclaredFields()) {
                 System.out.println("FIELD " + field.getName() + ": " + field.isAnnotationPresent(Primary.class));
                 if (field.isAnnotationPresent(Primary.class)) {
@@ -232,7 +275,6 @@ public class Serializer {
                                 if(lastId == -1) id = 1;
                                 field.set(object, id);
                                 objectId = id;
-                                System.out.println("OBJ " + objectId);
                             } else {
                                 for (Object existing : existingObjects) {
                                     Object existingValue = field.get(existing);
@@ -246,7 +288,6 @@ public class Serializer {
                                     }
 
                                     objectId = field.getInt(existing);
-                                    System.out.println("OBJ " + objectId);
                                 }
                             }
 
@@ -262,9 +303,6 @@ public class Serializer {
                     }
                 }
             }
-        } catch (IllegalAccessException e) {
-            throw new IllegalStateException(e.getMessage());
-        }
         return new Item<T>(objectId, object);
     }
 
@@ -311,6 +349,10 @@ public class Serializer {
         return result;
     }
 
+    /**
+     * Writes whole data to the file
+     * @param data Data to write
+     */
     private void saveAll(Map<String, RawResult> data) {
         try (BufferedWriter writer = Files.newBufferedWriter(file,
                 StandardOpenOption.TRUNCATE_EXISTING)) {
