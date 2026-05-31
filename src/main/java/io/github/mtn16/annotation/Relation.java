@@ -5,7 +5,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Retention(RetentionPolicy.CLASS)
+@Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 /**
  * Relation to other object
@@ -18,11 +18,5 @@ import java.lang.annotation.Target;
  */
 public @interface Relation {
     Class<?> target();
-
-    String key();
     String targetKey();
-
-
-
-
 }

@@ -11,29 +11,25 @@ public class Tester {
     public static void main(String[] args) throws IOException {
         MyDB db = new MyDB(new File("./devdb.db"));
 
-        //db.getSchema().insert(new TestModel(1, "Přemysl"));
+        TestModelAuthor author = new TestModelAuthor(1);
+        /*try {
+            db.getSchema().insert(author);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }*/
 
-        //db.getSchema().insert(new TestModel(-1, "Přemek"));
+        try {
+            db.getSchema().insert(new TestModelPost(1));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-        /*db.getSchema().find(TestModel.class).forEach(record -> {
-            System.out.println(record);
-            System.out.println(record.getId());
-            System.out.println(record.getName());
-            System.out.println("------------");
-        });*/
+        try {
+            db.getSchema().insert(new TestModelPost(1));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-        //db.getSchema().update(TestModel.class, new TestModel(-1, "Vaculdos"), row -> row.getId() == 2);
-        //db.getSchema().delete(TestModel.class, row -> row.getId() == 2);
-
-        /*db.getSchema().find(TestModel.class).forEach(record -> {
-            System.out.println(record);
-            System.out.println(record.getId());
-            System.out.println(record.getName());
-            System.out.println("------------");
-        });*/
-
-        db.export(new File("./export.csv").toPath(), ExportFormat.CSV);
-
-        //db.getSchema().update(TestModel.class, new TestModel(123, "Přemek"), testModel -> "".equals(""));
+        db.relations().findRelated(author, TestModelPost.class).forEach(System.out::println);
     }
 }

@@ -17,6 +17,7 @@ import java.util.Map;
 public class MyDB {
     private final File file;
     private final Serializer schema;
+    private final RelationManager relations;
     private final DatabaseInterface databaseInterface;
 
     /**
@@ -27,10 +28,15 @@ public class MyDB {
         this.file = file;
         this.databaseInterface = new DatabaseInterface();
         this.schema = new Serializer(file.toPath(), databaseInterface);
+        this.relations = new RelationManager(this);
     }
 
     public Serializer getSchema() {
         return schema;
+    }
+
+    public RelationManager relations() {
+        return relations;
     }
 
     /**

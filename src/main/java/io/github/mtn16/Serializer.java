@@ -1,6 +1,7 @@
 package io.github.mtn16;
 
 import io.github.mtn16.annotation.Primary;
+import io.github.mtn16.annotation.Relation;
 import io.github.mtn16.annotation.Unique;
 import io.github.mtn16.schema.Item;
 import io.github.mtn16.schema.RawResult;
@@ -52,6 +53,7 @@ public class Serializer {
         List<Object> objects = raw.data();
 
         validateUnique(object, objects);
+        validateRelations(object);
         Item<Object> primaryItem = usePrimary(object, objects, raw.index());
         object = primaryItem.object();
         if(primaryItem.index() > index) index = primaryItem.index();
@@ -167,6 +169,7 @@ public class Serializer {
                 newValue = overwritePrimary(newValue, clazz.cast(oldObject));
 
                 validateUnique(newValue, copy);
+                validateRelations(newValue);
                 Item<T> primaryItem = usePrimary(newValue, copy, raw.index());
                 newValue = primaryItem.object();
                 if(primaryItem.index() > index) index = primaryItem.index();
@@ -248,6 +251,69 @@ public class Serializer {
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
                 }
+            }
+        }
+    }
+
+    private <T> void validateRelations(T object) {
+
+        Class<?> clazz = object.getClass();
+
+        for(Field field : clazz.getDeclaredFields()) {
+
+            Relation relation =
+                    field.getAnnotation(Relation.class);
+
+            if(relation == null) {
+                continue;
+            }
+
+            try {
+
+                field.setAccessible(true);
+
+                Object relationValue =
+                        field.get(object);
+
+                List<?> targets =
+                        find(relation.target());
+
+                Field targetField =
+                        relation.target()
+                                .getDeclaredField(
+                                        relation.targetKey()
+                                );
+
+                targetField.setAccessible(true);
+
+                boolean found = false;
+
+                for(Object target : targets) {
+
+                    if(Objects.equals(
+                            targetField.get(target),
+                            relationValue
+                    )) {
+
+                        found = true;
+                        break;
+                    }
+                }
+
+                if(!found) {
+
+                    throw new IllegalStateException(
+                            "Relation target not found: "
+                                    + relation.target().getName()
+                                    + "."
+                                    + relation.targetKey()
+                                    + "="
+                                    + relationValue
+                    );
+                }
+
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
         }
     }
