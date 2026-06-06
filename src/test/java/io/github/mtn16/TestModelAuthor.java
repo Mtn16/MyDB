@@ -11,4 +11,8 @@ public class TestModelAuthor {
     public TestModelAuthor(int id) {
         this.id = id;
     }
+
+    public int getId() {
+        return id;
+    }
 }

@@ -30,6 +30,16 @@ public class Tester {
             e.printStackTrace();
         }
 
+        try {
+            db.getSchema().update(
+                    TestModelAuthor.class,
+                    new TestModelAuthor(1),
+                    a -> a.getId() == 1
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         db.relations().findRelated(author, TestModelPost.class).forEach(System.out::println);
     }
 }
